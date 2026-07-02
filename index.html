@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Client Visit Report — Ideal Fastener</title>
+<title>DSR — Ideal Fastener</title>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4338CA">
@@ -221,8 +221,8 @@
 <body>
 
 <header>
-  <h1>Client Visit Report</h1>
-  <p>Ideal Fastener Corporation · Export Sales</p>
+  <h1>DSR</h1>
+  <p>Ideal Fastener Corporation</p>
   <div class="zip-divider"></div>
 </header>
 
@@ -258,6 +258,8 @@
   <div class="draft-note" id="draftNote"></div>
 </main>
 
+<datalist id="customerList"></datalist>
+
 <template id="visitBlockTemplate">
   <div class="card visit-block">
     <div class="visit-block-header">
@@ -266,7 +268,7 @@
     </div>
     <div class="field">
       <label>Customer Name <span class="req">*</span></label>
-      <input type="text" class="v-customerName" placeholder="e.g. Debonair" autocomplete="off">
+      <input type="text" class="v-customerName" list="customerList" placeholder="e.g. Debonair" autocomplete="off">
     </div>
     <div class="field">
       <label>Concern Person / Designation</label>
@@ -289,7 +291,7 @@
 
 <div class="footer-bar">
   <div class="footer-inner">
-    <button id="submitBtn" onclick="submitReport()" type="button">Submit &amp; Email Boss</button>
+    <button id="submitBtn" onclick="submitReport()" type="button">Send to Outlook</button>
     <div class="status" id="status-msg"></div>
   </div>
 </div>
@@ -298,6 +300,19 @@
 // ====== PASTE YOUR APPS SCRIPT WEB APP URL HERE ======
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwr5Cxgq2R7hg2oQ86o_8TPvKeqVpm7KpVGNoL4UCjNIz68Zesfkd8KJpO5UkJy3MQi/exec";
 // ========================================================
+
+// Populate customer-name autocomplete from your existing DSR sheet
+if (SCRIPT_URL.indexOf("PASTE_YOUR") !== 0) {
+  fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(names => {
+      const datalist = document.getElementById("customerList");
+      datalist.innerHTML = names.map(n =>
+        `<option value="${n.replace(/&/g,"&amp;").replace(/"/g,"&quot;")}"></option>`
+      ).join("");
+    })
+    .catch(() => {});
+}
 
 const DRAFT_KEY = "ifc_visit_report_draft";
 let mode = "visit"; // "visit" or "status"
@@ -438,19 +453,19 @@ function submitReport(){
   .then(res => {
     if(res.result !== "success") throw new Error(res.message || "Unknown error");
     const count = data.visits ? data.visits.length : 1;
-    setStatus(`✓ ${mode === "visit" ? count + " visit(s)" : "Status"} sent to boss and saved!`, "ok");
+    setStatus(`✓ ${mode === "visit" ? count + " visit(s)" : "Status"} sent and saved!`, "ok");
     localStorage.removeItem(DRAFT_KEY);
     document.getElementById("draftNote").textContent = "";
     // reset: clear all visit blocks back to a single empty one
     document.getElementById("visitsContainer").innerHTML = "";
     addVisitBlock();
     btn.disabled = false;
-    btn.textContent = "Submit & Email Boss";
+    btn.textContent = "Send to Outlook";
   })
   .catch(err => {
     setStatus("Failed to send — check internet connection and try again.", "err");
     btn.disabled = false;
-    btn.textContent = "Submit & Email Boss";
+    btn.textContent = "Send to Outlook";
   });
 }
 // Register service worker for offline app-shell + installability
