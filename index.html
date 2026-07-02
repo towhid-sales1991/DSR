@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Client Visit Report — Ideal Fastener</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4338CA">
+<link rel="icon" href="icon-192.png" type="image/png">
+
+<!-- iOS PWA support -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Visit Report">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --indigo:#4338CA;
+    --indigo-dark:#332B99;
+    --teal:#0D9488;
+    --coral:#F97066;
+    --amber:#D97706;
+    --ink:#1E1B3A;
+    --muted:#6B7280;
+    --bg:#F5F5F9;
+    --card:#FFFFFF;
+    --border:#E5E5EF;
+    --success:#0D9488;
+    --error:#DC2626;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    padding-bottom:100px;
+  }
+  header{
+    background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-dark) 100%);
+    color:#fff;
+    padding:28px 20px 22px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 12px rgba(67,56,202,0.25);
+  }
+  header h1{
+    margin:0;
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:4px 0 0;
+    font-size:13px;
+    opacity:0.85;
+  }
+  .zip-divider{
+    height:6px;
+    background:repeating-linear-gradient(90deg,#fff 0 6px,transparent 6px 12px);
+    opacity:0.35;
+    margin-top:14px;
+  }
+  main{
+    max-width:560px;
+    margin:0 auto;
+    padding:18px 16px 0;
+  }
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+    border:1px solid var(--border);
+  }
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .req{color:var(--coral);}
+  input[type=text], input[type=date], textarea, select{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    font-size:16px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#FAFAFC;
+    transition:border-color .15s;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none;
+    border-color:var(--indigo);
+    background:#fff;
+  }
+  textarea{resize:vertical; min-height:90px; line-height:1.4;}
+  .field{margin-bottom:16px;}
+  .field:last-child{margin-bottom:0;}
+  .hint{font-size:12px; color:var(--muted); margin-top:5px;}
+  .footer-bar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:#fff;
+    border-top:1px solid var(--border);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 16px rgba(0,0,0,0.06);
+    z-index:20;
+  }
+  .footer-inner{max-width:560px; margin:0 auto;}
+  button#submitBtn{
+    width:100%;
+    padding:15px;
+    background:var(--indigo);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0.01em;
+    cursor:pointer;
+    transition:background .15s, transform .1s;
+  }
+  button#submitBtn:active{transform:scale(0.98);}
+  button#submitBtn:disabled{background:#9CA3AF; cursor:default;}
+  .status{
+    text-align:center;
+    font-size:13px;
+    margin-top:8px;
+    min-height:16px;
+  }
+  .status.ok{color:var(--success); font-weight:600;}
+  .status.err{color:var(--error); font-weight:600;}
+  .draft-note{
+    font-size:11.5px;
+    color:var(--muted);
+    text-align:center;
+    padding:10px 16px 0;
+  }
+  .brand-footer{
+    text-align:center;
+    font-size:11px;
+    color:var(--muted);
+    padding:18px 0 10px;
+  }
+  .section-label{
+    font-size:11px;
+    font-weight:700;
+    color:var(--indigo);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    margin-bottom:10px;
+  }
+  .toggle-group{
+    display:flex;
+    gap:6px;
+  }
+  .toggle-btn{
+    flex:1;
+    padding:12px 8px;
+    border:1.5px solid var(--border);
+    background:#FAFAFC;
+    border-radius:10px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .toggle-btn.active{
+    background:var(--indigo);
+    border-color:var(--indigo);
+    color:#fff;
+  }
+  select{
+    width:100%;
+    padding:12px 14px;
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    font-size:16px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#FAFAFC;
+  }
+  .add-visit-btn{
+    width:100%;
+    padding:13px;
+    background:#EEF2FF;
+    color:var(--indigo);
+    border:1.5px dashed var(--indigo);
+    border-radius:12px;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .add-visit-btn:active{transform:scale(0.98);}
+  .visit-block-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .visit-number-label{margin-bottom:0;}
+  .remove-visit-btn{
+    background:none;
+    border:none;
+    color:var(--coral);
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    padding:4px 6px;
+  }
+  .visit-block{position:relative;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Client Visit Report</h1>
+  <p>Ideal Fastener Corporation · Export Sales</p>
+  <div class="zip-divider"></div>
+</header>
+
+<main>
+  <div class="card" style="padding:8px;">
+    <div class="toggle-group">
+      <button type="button" class="toggle-btn active" id="btnVisit" onclick="setMode('visit')">🧑‍💼 Client Visit</button>
+      <button type="button" class="toggle-btn" id="btnStatus" onclick="setMode('status')">📅 Daily Status</button>
+    </div>
+  </div>
+
+  <form id="reportForm">
+    <div class="card" id="dateCard">
+      <div class="section-label">Meeting Details</div>
+      <div class="field">
+        <label>Meeting Date <span class="req">*</span></label>
+        <input type="date" id="meetingDate" required>
+      </div>
+      <div class="field" id="statusField" style="display:none;">
+        <label>Today's Status <span class="req">*</span></label>
+        <select id="status">
+          <option value="office">🟠 In Office</option>
+          <option value="leave">🟣 On Leave</option>
+          <option value="holiday">🔴 Official Holiday</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="visitsContainer"></div>
+
+    <button type="button" class="add-visit-btn" id="addVisitBtn" onclick="addVisitBlock()">+ Add Another Visit</button>
+  </form>
+  <div class="draft-note" id="draftNote"></div>
+</main>
+
+<template id="visitBlockTemplate">
+  <div class="card visit-block">
+    <div class="visit-block-header">
+      <div class="section-label visit-number-label">Visit</div>
+      <button type="button" class="remove-visit-btn" onclick="removeVisitBlock(this)">✕ Remove</button>
+    </div>
+    <div class="field">
+      <label>Customer Name <span class="req">*</span></label>
+      <input type="text" class="v-customerName" placeholder="e.g. Debonair" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Concern Person / Designation</label>
+      <input type="text" class="v-concernPerson" placeholder="e.g. Rahim, Merchandising Manager" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Brand Name</label>
+      <input type="text" class="v-brandName" placeholder="e.g. Marks CA" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Meeting Recap <span class="req">*</span></label>
+      <textarea class="v-meetingRecap" placeholder="What was discussed in the meeting..."></textarea>
+    </div>
+    <div class="field">
+      <label>Remarks</label>
+      <textarea class="v-remarks" placeholder="Any additional notes, next steps..."></textarea>
+    </div>
+  </div>
+</template>
+
+<div class="footer-bar">
+  <div class="footer-inner">
+    <button id="submitBtn" onclick="submitReport()" type="button">Submit &amp; Email Boss</button>
+    <div class="status" id="status-msg"></div>
+  </div>
+</div>
+
+<script>
+// ====== PASTE YOUR APPS SCRIPT WEB APP URL HERE ======
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwr5Cxgq2R7hg2oQ86o_8TPvKeqVpm7KpVGNoL4UCjNIz68Zesfkd8KJpO5UkJy3MQi/exec";
+// ========================================================
+
+const DRAFT_KEY = "ifc_visit_report_draft";
+let mode = "visit"; // "visit" or "status"
+
+// Default meeting date to today
+document.getElementById("meetingDate").valueAsDate = new Date();
+
+function setMode(m){
+  mode = m;
+  document.getElementById("btnVisit").classList.toggle("active", m === "visit");
+  document.getElementById("btnStatus").classList.toggle("active", m === "status");
+  document.getElementById("statusField").style.display = m === "status" ? "block" : "none";
+  document.getElementById("visitsContainer").style.display = m === "status" ? "none" : "block";
+  document.getElementById("addVisitBtn").style.display = m === "status" ? "none" : "block";
+  setStatus("", "");
+}
+
+function addVisitBlock(){
+  const template = document.getElementById("visitBlockTemplate");
+  const clone = template.content.cloneNode(true);
+  document.getElementById("visitsContainer").appendChild(clone);
+  renumberVisitBlocks();
+  saveDraft();
+}
+
+function removeVisitBlock(btn){
+  const blocks = document.querySelectorAll(".visit-block");
+  if(blocks.length <= 1) return; // always keep at least one
+  btn.closest(".visit-block").remove();
+  renumberVisitBlocks();
+  saveDraft();
+}
+
+function renumberVisitBlocks(){
+  const blocks = document.querySelectorAll(".visit-block");
+  blocks.forEach((b, i) => {
+    b.querySelector(".visit-number-label").textContent = "Visit " + (i + 1);
+    b.querySelector(".remove-visit-btn").style.display = blocks.length > 1 ? "block" : "none";
+  });
+}
+
+function getVisitBlocksData(){
+  const blocks = document.querySelectorAll(".visit-block");
+  return Array.from(blocks).map(b => ({
+    customerName: b.querySelector(".v-customerName").value.trim(),
+    concernPerson: b.querySelector(".v-concernPerson").value.trim(),
+    brandName: b.querySelector(".v-brandName").value.trim(),
+    meetingRecap: b.querySelector(".v-meetingRecap").value.trim(),
+    remarks: b.querySelector(".v-remarks").value.trim()
+  }));
+}
+
+// Load any saved draft (in case page was closed mid-fill)
+function loadDraft(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}");
+    if(saved.visits && saved.visits.length){
+      saved.visits.forEach((v, i) => {
+        if(i > 0) addVisitBlock();
+      });
+      const blocks = document.querySelectorAll(".visit-block");
+      saved.visits.forEach((v, i) => {
+        blocks[i].querySelector(".v-customerName").value = v.customerName || "";
+        blocks[i].querySelector(".v-concernPerson").value = v.concernPerson || "";
+        blocks[i].querySelector(".v-brandName").value = v.brandName || "";
+        blocks[i].querySelector(".v-meetingRecap").value = v.meetingRecap || "";
+        blocks[i].querySelector(".v-remarks").value = v.remarks || "";
+      });
+      document.getElementById("draftNote").textContent = "Draft restored from your last unsaved entry.";
+    }
+  }catch(e){}
+}
+
+function saveDraft(){
+  const draft = { visits: getVisitBlocksData() };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+// Start with one empty visit block, then restore draft on top if any
+addVisitBlock();
+loadDraft();
+
+// Autosave draft as user types (event delegation on the container)
+document.getElementById("visitsContainer").addEventListener("input", saveDraft);
+
+function setStatus(msg, cls){
+  const el = document.getElementById("status-msg");
+  el.textContent = msg;
+  el.className = "status " + (cls || "");
+}
+
+function submitReport(){
+  const meetingDate = document.getElementById("meetingDate").value;
+
+  if(!meetingDate){
+    setStatus("Please select a date.", "err");
+    return;
+  }
+
+  let data = { reportType: mode, meetingDate: meetingDate };
+
+  if(mode === "visit"){
+    const allBlocks = getVisitBlocksData();
+    // Only keep blocks where at least customer name was typed (ignore blank extra blocks)
+    const visits = allBlocks.filter(v => v.customerName || v.meetingRecap);
+
+    if(visits.length === 0){
+      setStatus("Please fill at least one visit.", "err");
+      return;
+    }
+    for(let i = 0; i < visits.length; i++){
+      if(!visits[i].customerName || !visits[i].meetingRecap){
+        setStatus(`Visit ${i + 1}: please fill Customer Name and Meeting Recap.`, "err");
+        return;
+      }
+    }
+    data.visits = visits;
+  } else {
+    data.status = document.getElementById("status").value;
+  }
+
+  if(SCRIPT_URL.indexOf("PASTE_YOUR") === 0){
+    setStatus("Setup needed: paste your Apps Script URL in the code first.", "err");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+  setStatus("Sending report...", "");
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids CORS preflight with Apps Script
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(res => {
+    if(res.result !== "success") throw new Error(res.message || "Unknown error");
+    const count = data.visits ? data.visits.length : 1;
+    setStatus(`✓ ${mode === "visit" ? count + " visit(s)" : "Status"} sent to boss and saved!`, "ok");
+    localStorage.removeItem(DRAFT_KEY);
+    document.getElementById("draftNote").textContent = "";
+    // reset: clear all visit blocks back to a single empty one
+    document.getElementById("visitsContainer").innerHTML = "";
+    addVisitBlock();
+    btn.disabled = false;
+    btn.textContent = "Submit & Email Boss";
+  })
+  .catch(err => {
+    setStatus("Failed to send — check internet connection and try again.", "err");
+    btn.disabled = false;
+    btn.textContent = "Submit & Email Boss";
+  });
+}
+// Register service worker for offline app-shell + installability
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  });
+}
+</script>
+
+<div class="brand-footer">System designed &amp; engineered by Towhid</div>
+
+</body>
+</html>
