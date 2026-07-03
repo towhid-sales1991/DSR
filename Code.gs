@@ -75,9 +75,10 @@ function doPost(e) {
       markDayColumn(data.meetingDate, "visit");
       sendReportEmail(data.meetingDate, visits);
     } else {
-      // status-only day: office / leave / holiday — no customer, no meeting recap
-      markDayColumn(data.meetingDate, data.status);
-      sendStatusEmail(data);
+      // status-only day(s): office / leave / holiday — no customer, no meeting recap
+      const dates = data.dates && data.dates.length ? data.dates : [data.meetingDate];
+      dates.forEach(d => markDayColumn(d, data.status));
+      sendStatusEmail(data, dates);
     }
 
     return ContentService
@@ -108,17 +109,24 @@ function logVisit(meetingDate, v) {
   ]);
 }
 
-function sendStatusEmail(data) {
+function sendStatusEmail(data, dates) {
   const label = STATUS_LABELS[data.status] || data.status;
-  const subject = `Daily Status — ${label} — ${data.meetingDate}`;
+  const isBulk = dates.length > 1;
+  const subject = isBulk
+    ? `Daily Status — ${label} — ${dates.length} days`
+    : `Daily Status — ${label} — ${dates[0]}`;
+
+  const dateRows = isBulk
+    ? `<tr><td style="padding:8px; font-weight:bold; width:140px; vertical-align:top; border-bottom:1px solid #eee;">Dates (${dates.length})</td><td style="padding:8px; border-bottom:1px solid #eee;">${escapeHtml(dates.join(", "))}</td></tr>`
+    : `<tr><td style="padding:8px; font-weight:bold; width:140px; border-bottom:1px solid #eee;">Date</td><td style="padding:8px; border-bottom:1px solid #eee;">${escapeHtml(dates[0])}</td></tr>`;
 
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: #4338CA; color: #fff; padding: 16px 20px; border-radius: 6px 6px 0 0;">
-        <h2 style="margin:0; font-size: 18px;">Daily Status</h2>
+        <h2 style="margin:0; font-size: 18px;">Daily Status${isBulk ? " — Bulk" : ""}</h2>
       </div>
       <table style="width:100%; border-collapse: collapse; margin-top: 12px;">
-        <tr><td style="padding:8px; font-weight:bold; width:140px; border-bottom:1px solid #eee;">Date</td><td style="padding:8px; border-bottom:1px solid #eee;">${escapeHtml(data.meetingDate)}</td></tr>
+        ${dateRows}
         <tr><td style="padding:8px; font-weight:bold;">Status</td><td style="padding:8px;">${escapeHtml(label)}</td></tr>
       </table>
       <p style="color:#888; font-size:13px; margin-top:14px;">Full report workbook (all tabs) attached as Excel.</p>

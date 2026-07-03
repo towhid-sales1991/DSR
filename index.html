@@ -216,6 +216,36 @@
     padding:4px 6px;
   }
   .visit-block{position:relative;}
+  .toggle-btn.small{
+    padding:9px 6px;
+    font-size:12.5px;
+  }
+  .weekday-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:8px;
+  }
+  .wd-chip{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    padding:8px 10px;
+    border:1.5px solid var(--border);
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+    background:#FAFAFC;
+    cursor:pointer;
+    margin-bottom:0;
+  }
+  .wd-chip:has(input:checked){
+    background:var(--indigo);
+    border-color:var(--indigo);
+    color:#fff;
+  }
+  .wd-chip input{margin:0; accent-color:#fff;}
 </style>
 </head>
 <body>
@@ -237,7 +267,7 @@
   <form id="reportForm">
     <div class="card" id="dateCard">
       <div class="section-label">Meeting Details</div>
-      <div class="field">
+      <div class="field" id="singleDateField">
         <label>Meeting Date <span class="req">*</span></label>
         <input type="date" id="meetingDate" required>
       </div>
@@ -248,6 +278,27 @@
           <option value="leave">🟣 On Leave</option>
           <option value="holiday">🔴 Official Holiday</option>
         </select>
+        <div class="toggle-group" style="margin-top:12px;">
+          <button type="button" class="toggle-btn small active" id="btnSingleDay" onclick="setStatusMode('single')">Single Day</button>
+          <button type="button" class="toggle-btn small" id="btnMultiDay" onclick="setStatusMode('multi')">Multiple Days</button>
+        </div>
+      </div>
+      <div class="field" id="multiDayFields" style="display:none;">
+        <label>From Date <span class="req">*</span></label>
+        <input type="date" id="fromDate">
+        <label style="margin-top:12px;">To Date <span class="req">*</span></label>
+        <input type="date" id="toDate">
+        <label style="margin-top:12px;">Apply to these weekdays</label>
+        <div class="weekday-grid">
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="0">Sun</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="1">Mon</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="2">Tue</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="3">Wed</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="4">Thu</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="5" checked>Fri</label>
+          <label class="wd-chip"><input type="checkbox" class="wd-check" value="6">Sat</label>
+        </div>
+        <div class="hint" id="multiDayPreview"></div>
       </div>
     </div>
 
@@ -316,9 +367,12 @@ if (SCRIPT_URL.indexOf("PASTE_YOUR") !== 0) {
 
 const DRAFT_KEY = "ifc_visit_report_draft";
 let mode = "visit"; // "visit" or "status"
+let statusSubMode = "single"; // "single" or "multi"
 
 // Default meeting date to today
 document.getElementById("meetingDate").valueAsDate = new Date();
+document.getElementById("fromDate").valueAsDate = new Date();
+document.getElementById("toDate").valueAsDate = new Date();
 
 function setMode(m){
   mode = m;
@@ -327,8 +381,63 @@ function setMode(m){
   document.getElementById("statusField").style.display = m === "status" ? "block" : "none";
   document.getElementById("visitsContainer").style.display = m === "status" ? "none" : "block";
   document.getElementById("addVisitBtn").style.display = m === "status" ? "none" : "block";
+  if(m === "visit"){
+    setStatusMode("single"); // reset status sub-mode when leaving status tab
+  } else {
+    setStatusMode(statusSubMode);
+  }
   setStatus("", "");
 }
+
+function setStatusMode(sm){
+  statusSubMode = sm;
+  document.getElementById("btnSingleDay").classList.toggle("active", sm === "single");
+  document.getElementById("btnMultiDay").classList.toggle("active", sm === "multi");
+  const showSingleDateField = !(mode === "status" && sm === "multi");
+  document.getElementById("singleDateField").style.display = showSingleDateField ? "block" : "none";
+  document.getElementById("multiDayFields").style.display = (mode === "status" && sm === "multi") ? "block" : "none";
+  if(mode === "status" && sm === "multi") updateMultiDayPreview();
+}
+
+function computeMultiDayDates(){
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+  const checked = Array.from(document.querySelectorAll(".wd-check:checked")).map(c => parseInt(c.value, 10));
+  if(!from || !to || checked.length === 0) return [];
+
+  const dates = [];
+  let cur = new Date(from + "T00:00:00");
+  const end = new Date(to + "T00:00:00");
+  if(cur > end) return [];
+
+  while(cur <= end){
+    if(checked.includes(cur.getDay())){
+      const y = cur.getFullYear();
+      const m = String(cur.getMonth() + 1).padStart(2, "0");
+      const d = String(cur.getDate()).padStart(2, "0");
+      dates.push(`${y}-${m}-${d}`);
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+
+function updateMultiDayPreview(){
+  const dates = computeMultiDayDates();
+  const el = document.getElementById("multiDayPreview");
+  if(dates.length === 0){
+    el.textContent = "Select a date range and at least one weekday.";
+  } else {
+    el.textContent = `${dates.length} date(s) will be marked: ${dates.join(", ")}`;
+  }
+}
+
+["fromDate","toDate"].forEach(id => {
+  document.getElementById(id).addEventListener("input", updateMultiDayPreview);
+});
+document.querySelectorAll(".wd-check").forEach(cb => {
+  cb.addEventListener("change", updateMultiDayPreview);
+});
 
 function addVisitBlock(){
   const template = document.getElementById("visitBlockTemplate");
@@ -405,14 +514,17 @@ function setStatus(msg, cls){
 }
 
 function submitReport(){
-  const meetingDate = document.getElementById("meetingDate").value;
+  const isMultiDayStatus = (mode === "status" && statusSubMode === "multi");
+  let data = { reportType: mode };
 
-  if(!meetingDate){
-    setStatus("Please select a date.", "err");
-    return;
+  if(!isMultiDayStatus){
+    const meetingDate = document.getElementById("meetingDate").value;
+    if(!meetingDate){
+      setStatus("Please select a date.", "err");
+      return;
+    }
+    data.meetingDate = meetingDate;
   }
-
-  let data = { reportType: mode, meetingDate: meetingDate };
 
   if(mode === "visit"){
     const allBlocks = getVisitBlocksData();
@@ -430,6 +542,14 @@ function submitReport(){
       }
     }
     data.visits = visits;
+  } else if(isMultiDayStatus){
+    const dates = computeMultiDayDates();
+    if(dates.length === 0){
+      setStatus("Select a valid date range and at least one weekday.", "err");
+      return;
+    }
+    data.dates = dates;
+    data.status = document.getElementById("status").value;
   } else {
     data.status = document.getElementById("status").value;
   }
@@ -452,8 +572,9 @@ function submitReport(){
   .then(res => res.json())
   .then(res => {
     if(res.result !== "success") throw new Error(res.message || "Unknown error");
-    const count = data.visits ? data.visits.length : 1;
-    setStatus(`✓ ${mode === "visit" ? count + " visit(s)" : "Status"} sent and saved!`, "ok");
+    const count = data.visits ? data.visits.length : (data.dates ? data.dates.length : 1);
+    const label = mode === "visit" ? count + " visit(s)" : (data.dates ? count + " day(s) marked" : "Status");
+    setStatus(`✓ ${label} sent and saved!`, "ok");
     localStorage.removeItem(DRAFT_KEY);
     document.getElementById("draftNote").textContent = "";
     // reset: clear all visit blocks back to a single empty one
