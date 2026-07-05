@@ -6,136 +6,187 @@
 <title>DSR — Ideal Fastener</title>
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4338CA">
+<meta name="theme-color" content="#7C6FE0">
 <link rel="icon" href="icon-192.png" type="image/png">
 
 <!-- iOS PWA support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Visit Report">
+<meta name="apple-mobile-web-app-title" content="DSR">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-  :root{
-    --indigo:#4338CA;
-    --indigo-dark:#332B99;
-    --teal:#0D9488;
-    --coral:#F97066;
-    --amber:#D97706;
-    --ink:#1E1B3A;
-    --muted:#6B7280;
-    --bg:#F5F5F9;
-    --card:#FFFFFF;
-    --border:#E5E5EF;
-    --success:#0D9488;
-    --error:#DC2626;
+  /* ============ THEME SYSTEM ============ */
+  :root,
+  [data-theme="lavender"]{
+    --p-50:#F5F3FF; --p-100:#EDE9FE; --p-400:#A78BFA; --p-500:#8B7FE0; --p-600:#7C6FE0; --p-700:#6957D1;
+    --accent:#F472B6; --bg-a:#F3F0FC; --bg-b:#EBE7FB;
   }
+  [data-theme="mint"]{
+    --p-50:#ECFDF7; --p-100:#D1FAE9; --p-400:#5EEAD4; --p-500:#2DD4A7; --p-600:#14B891; --p-700:#0D9B79;
+    --accent:#FBBF24; --bg-a:#EAFBF5; --bg-b:#DFF7EE;
+  }
+  [data-theme="sky"]{
+    --p-50:#EFF8FF; --p-100:#DBEEFE; --p-400:#7CC5FA; --p-500:#4DA8F5; --p-600:#2E8DE8; --p-700:#1E70C4;
+    --accent:#FB7185; --bg-a:#EDF6FE; --bg-b:#E0EFFC;
+  }
+  [data-theme="peach"]{
+    --p-50:#FFF6ED; --p-100:#FFE8D3; --p-400:#FDBA8C; --p-500:#FB9A5F; --p-600:#F7813C; --p-700:#DD6420;
+    --accent:#8B7FE0; --bg-a:#FFF7EE; --bg-b:#FEEEDF;
+  }
+  [data-theme="rose"]{
+    --p-50:#FFF0F6; --p-100:#FFDCEB; --p-400:#FDA4C7; --p-500:#F97CAA; --p-600:#F0578E; --p-700:#D63C71;
+    --accent:#5EEAD4; --bg-a:#FFF2F7; --bg-b:#FEE7F0;
+  }
+
+  :root{
+    --ink:#241F3D; --muted:#7A7590; --card:#FFFFFF; --border:#E9E5F5;
+    --success:#0FA37F; --error:#E5484D;
+    --shadow-sm: 0 2px 8px rgba(76, 60, 140, 0.06);
+    --shadow-md: 0 8px 30px rgba(76, 60, 140, 0.10);
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+
   *{box-sizing:border-box;}
+  html,body{height:100%;}
   body{
     margin:0;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);
+    background:
+      radial-gradient(1200px 600px at 100% -10%, var(--bg-a), transparent),
+      radial-gradient(1000px 500px at -10% 20%, var(--bg-b), transparent),
+      #FAFAFD;
     color:var(--ink);
     padding-bottom:100px;
+    -webkit-font-smoothing:antialiased;
+    transition:background .4s var(--ease);
   }
   header{
-    background:linear-gradient(135deg,var(--indigo) 0%,var(--indigo-dark) 100%);
+    background:linear-gradient(135deg, var(--p-600) 0%, var(--p-700) 100%);
     color:#fff;
-    padding:28px 20px 22px;
+    padding:26px 20px 24px;
     position:sticky;
     top:0;
-    z-index:10;
-    box-shadow:0 2px 12px rgba(67,56,202,0.25);
+    z-index:30;
+    box-shadow:0 8px 32px -8px rgba(80,60,160,0.35);
+    border-radius:0 0 28px 28px;
+    transition:background .4s var(--ease);
   }
+  .header-top{display:flex; align-items:flex-start; justify-content:space-between; gap:12px;}
   header h1{
     margin:0;
-    font-size:20px;
-    font-weight:700;
-    letter-spacing:-0.01em;
+    font-size:21px;
+    font-weight:800;
+    letter-spacing:-0.02em;
   }
   header p{
     margin:4px 0 0;
-    font-size:13px;
-    opacity:0.85;
+    font-size:12.5px;
+    opacity:0.82;
+    font-weight:500;
   }
+  .theme-picker{display:flex; gap:7px; padding-top:2px;}
+  .theme-dot{
+    width:22px; height:22px; border-radius:50%; cursor:pointer;
+    border:2px solid rgba(255,255,255,0.55);
+    box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    transition:transform .2s var(--ease), border-color .2s;
+  }
+  .theme-dot:active{transform:scale(0.88);}
+  .theme-dot.active{border-color:#fff; transform:scale(1.12);}
+  .theme-dot.lavender{background:linear-gradient(135deg,#A78BFA,#7C6FE0);}
+  .theme-dot.mint{background:linear-gradient(135deg,#5EEAD4,#14B891);}
+  .theme-dot.sky{background:linear-gradient(135deg,#7CC5FA,#2E8DE8);}
+  .theme-dot.peach{background:linear-gradient(135deg,#FDBA8C,#F7813C);}
+  .theme-dot.rose{background:linear-gradient(135deg,#FDA4C7,#F0578E);}
   .zip-divider{
-    height:6px;
-    background:repeating-linear-gradient(90deg,#fff 0 6px,transparent 6px 12px);
-    opacity:0.35;
-    margin-top:14px;
+    height:5px;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.55) 0 6px,transparent 6px 13px);
+    opacity:0.55;
+    margin-top:16px;
+    border-radius:4px;
   }
   main{
     max-width:560px;
     margin:0 auto;
-    padding:18px 16px 0;
+    padding:20px 16px 0;
+    animation:fadeUp .5s var(--ease);
   }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   .card{
     background:var(--card);
-    border-radius:14px;
-    padding:18px;
-    margin-bottom:14px;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:16px;
     border:1px solid var(--border);
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow .25s var(--ease), transform .25s var(--ease);
   }
+  .card:focus-within{box-shadow:var(--shadow-md); transform:translateY(-1px);}
   label{
     display:block;
     font-size:13px;
     font-weight:600;
     color:var(--ink);
-    margin-bottom:6px;
+    margin-bottom:7px;
   }
-  .req{color:var(--coral);}
+  .req{color:var(--accent);}
   input[type=text], input[type=date], textarea, select{
     width:100%;
-    padding:12px 14px;
+    padding:13px 15px;
     border:1.5px solid var(--border);
-    border-radius:10px;
+    border-radius:14px;
     font-size:16px;
     font-family:inherit;
     color:var(--ink);
-    background:#FAFAFC;
-    transition:border-color .15s;
+    background:var(--p-50);
+    transition:border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
   }
   input:focus, textarea:focus, select:focus{
     outline:none;
-    border-color:var(--indigo);
+    border-color:var(--p-500);
     background:#fff;
+    box-shadow:0 0 0 4px var(--p-100);
   }
-  textarea{resize:vertical; min-height:90px; line-height:1.4;}
-  .field{margin-bottom:16px;}
+  textarea{resize:vertical; min-height:90px; line-height:1.5;}
+  .field{margin-bottom:17px;}
   .field:last-child{margin-bottom:0;}
-  .hint{font-size:12px; color:var(--muted); margin-top:5px;}
+  .hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.4;}
   .footer-bar{
     position:fixed;
     bottom:0; left:0; right:0;
-    background:#fff;
+    background:rgba(255,255,255,0.85);
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
     border-top:1px solid var(--border);
-    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-    box-shadow:0 -4px 16px rgba(0,0,0,0.06);
+    padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 32px rgba(76,60,140,0.10);
     z-index:20;
   }
   .footer-inner{max-width:560px; margin:0 auto;}
   button#submitBtn{
     width:100%;
-    padding:15px;
-    background:var(--indigo);
+    padding:16px;
+    background:linear-gradient(135deg, var(--p-600), var(--p-700));
     color:#fff;
     border:none;
-    border-radius:12px;
+    border-radius:16px;
     font-size:16px;
     font-weight:700;
     letter-spacing:0.01em;
     cursor:pointer;
-    transition:background .15s, transform .1s;
+    box-shadow:0 10px 24px -6px var(--p-500);
+    transition:transform .15s var(--ease), box-shadow .15s var(--ease), background .3s;
   }
-  button#submitBtn:active{transform:scale(0.98);}
-  button#submitBtn:disabled{background:#9CA3AF; cursor:default;}
+  button#submitBtn:active{transform:scale(0.97); box-shadow:0 4px 14px -4px var(--p-500);}
+  button#submitBtn:disabled{background:#C7C2DC; box-shadow:none; cursor:default;}
   .status{
     text-align:center;
     font-size:13px;
-    margin-top:8px;
+    margin-top:10px;
     min-height:16px;
+    font-weight:600;
   }
-  .status.ok{color:var(--success); font-weight:600;}
-  .status.err{color:var(--error); font-weight:600;}
+  .status.ok{color:var(--success);}
+  .status.err{color:var(--error);}
   .draft-note{
     font-size:11.5px;
     color:var(--muted);
@@ -146,59 +197,64 @@
     text-align:center;
     font-size:11px;
     color:var(--muted);
-    padding:18px 0 10px;
+    padding:20px 0 12px;
+    font-weight:500;
   }
   .section-label{
     font-size:11px;
-    font-weight:700;
-    color:var(--indigo);
+    font-weight:800;
+    color:var(--p-600);
     text-transform:uppercase;
-    letter-spacing:0.06em;
-    margin-bottom:10px;
+    letter-spacing:0.07em;
+    margin-bottom:12px;
   }
   .toggle-group{
     display:flex;
-    gap:6px;
+    gap:5px;
+    background:var(--p-50);
+    padding:5px;
+    border-radius:16px;
   }
   .toggle-btn{
     flex:1;
-    padding:12px 8px;
-    border:1.5px solid var(--border);
-    background:#FAFAFC;
-    border-radius:10px;
+    padding:13px 8px;
+    border:none;
+    background:transparent;
+    border-radius:12px;
     font-size:13.5px;
-    font-weight:600;
+    font-weight:700;
     color:var(--muted);
     cursor:pointer;
+    transition:background .25s var(--ease), color .25s var(--ease), box-shadow .25s var(--ease);
   }
   .toggle-btn.active{
-    background:var(--indigo);
-    border-color:var(--indigo);
-    color:#fff;
+    background:#fff;
+    color:var(--p-700);
+    box-shadow:var(--shadow-sm);
+  }
+  .toggle-btn.small{
+    padding:10px 6px;
+    font-size:12.5px;
   }
   select{
-    width:100%;
-    padding:12px 14px;
-    border:1.5px solid var(--border);
-    border-radius:10px;
-    font-size:16px;
-    font-family:inherit;
-    color:var(--ink);
-    background:#FAFAFC;
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%237A7590' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 15px center; padding-right:38px;
   }
   .add-visit-btn{
     width:100%;
-    padding:13px;
-    background:#EEF2FF;
-    color:var(--indigo);
-    border:1.5px dashed var(--indigo);
-    border-radius:12px;
+    padding:14px;
+    background:var(--p-50);
+    color:var(--p-700);
+    border:1.5px dashed var(--p-400);
+    border-radius:14px;
     font-size:14.5px;
     font-weight:700;
     cursor:pointer;
     margin-bottom:14px;
+    transition:background .2s, transform .1s;
   }
-  .add-visit-btn:active{transform:scale(0.98);}
+  .add-visit-btn:active{transform:scale(0.98); background:var(--p-100);}
   .visit-block-header{
     display:flex;
     align-items:center;
@@ -209,17 +265,13 @@
   .remove-visit-btn{
     background:none;
     border:none;
-    color:var(--coral);
+    color:var(--accent);
     font-size:12.5px;
     font-weight:600;
     cursor:pointer;
     padding:4px 6px;
   }
   .visit-block{position:relative;}
-  .toggle-btn.small{
-    padding:9px 6px;
-    font-size:12.5px;
-  }
   .weekday-grid{
     display:flex;
     flex-wrap:wrap;
@@ -230,29 +282,42 @@
     display:flex;
     align-items:center;
     gap:5px;
-    padding:8px 10px;
+    padding:8px 11px;
     border:1.5px solid var(--border);
     border-radius:20px;
     font-size:12.5px;
     font-weight:600;
     color:var(--muted);
-    background:#FAFAFC;
+    background:var(--p-50);
     cursor:pointer;
     margin-bottom:0;
+    transition:background .2s, color .2s, border-color .2s;
   }
   .wd-chip:has(input:checked){
-    background:var(--indigo);
-    border-color:var(--indigo);
+    background:linear-gradient(135deg, var(--p-600), var(--p-700));
+    border-color:var(--p-600);
     color:#fff;
   }
   .wd-chip input{margin:0; accent-color:#fff;}
+  ::placeholder{color:#B4AFCB;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>DSR</h1>
-  <p>Ideal Fastener Corporation</p>
+  <div class="header-top">
+    <div>
+      <h1>DSR</h1>
+      <p>Ideal Fastener Corporation</p>
+    </div>
+    <div class="theme-picker" id="themePicker">
+      <div class="theme-dot lavender active" data-theme="lavender" onclick="setTheme('lavender')"></div>
+      <div class="theme-dot mint" data-theme="mint" onclick="setTheme('mint')"></div>
+      <div class="theme-dot sky" data-theme="sky" onclick="setTheme('sky')"></div>
+      <div class="theme-dot peach" data-theme="peach" onclick="setTheme('peach')"></div>
+      <div class="theme-dot rose" data-theme="rose" onclick="setTheme('rose')"></div>
+    </div>
+  </div>
   <div class="zip-divider"></div>
 </header>
 
@@ -368,6 +433,20 @@ if (SCRIPT_URL.indexOf("PASTE_YOUR") !== 0) {
 const DRAFT_KEY = "ifc_visit_report_draft";
 let mode = "visit"; // "visit" or "status"
 let statusSubMode = "single"; // "single" or "multi"
+
+// ---------- Theme handling ----------
+const THEME_KEY = "dsr_theme";
+function setTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  document.querySelectorAll(".theme-dot").forEach(d => d.classList.toggle("active", d.dataset.theme === t));
+  localStorage.setItem(THEME_KEY, t);
+  const colors = { lavender:"#7C6FE0", mint:"#14B891", sky:"#2E8DE8", peach:"#F7813C", rose:"#F0578E" };
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", colors[t] || "#7C6FE0");
+}
+(function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) setTheme(saved);
+})();
 
 // Default meeting date to today
 document.getElementById("meetingDate").valueAsDate = new Date();

@@ -2,7 +2,7 @@
 // Caches the app shell so the form opens instantly even with weak/no signal.
 // Form submissions still need internet (they email + write to your Sheet live).
 
-const CACHE_NAME = "visit-report-v3";
+const CACHE_NAME = "visit-report-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
